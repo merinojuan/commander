@@ -29,7 +29,7 @@ export const getDolargData = async () => {
   const browser = await chromium.launch()
   const page = await browser.newPage()
 
-  await page.goto(dataUrl, { timeout: 60000 })
+  await page.goto(dataUrl, { timeout: 90000 })
 
   const parentSelector = 'div.tile.is-parent.is-7.is-vertical'
   const childSelector = 'div.tile.is-child'
