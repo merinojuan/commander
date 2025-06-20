@@ -1,6 +1,6 @@
 FROM mcr.microsoft.com/playwright:v1.52.0-noble AS base
 
-# RUN npx -y playwright@1.52.0 install --with-deps
+RUN npx -y playwright@1.52.0 install --with-deps
 
 FROM base AS builder
 
