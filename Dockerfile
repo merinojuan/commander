@@ -1,6 +1,7 @@
-FROM mcr.microsoft.com/playwright:v1.52.0-noble AS base
+# FROM mcr.microsoft.com/playwright:v1.52.0-noble AS base
+FROM mcr.microsoft.com/playwright:v1.52.0-jammy
 
-FROM base AS builder
+# FROM base AS builder
 
 RUN apt-get update && apt-get install -y libc6
 WORKDIR /app
@@ -8,7 +9,7 @@ WORKDIR /app
 COPY package*json tsconfig.json src ./
 
 RUN npm ci && \
-    npx -y playwright@1.52.0 install --with-deps && \
+    # npx -y playwright@1.52.0 install --with-deps && \
     npm run build && \
     npm prune --production
 
