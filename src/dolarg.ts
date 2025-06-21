@@ -1,4 +1,4 @@
-import { chromium } from 'playwright'
+import * as cheerio from 'cheerio'
 import { type Timestamp } from 'firebase-admin/firestore'
 import { config } from 'dotenv'
 
@@ -26,57 +26,37 @@ export const getDolargData = async () => {
 
   if (!dataUrl) throw new Error('No se encontraron las variables de entorno: DOLARG_DATA_URL')
 
-  const browser = await chromium.launch()
-  const page = await browser.newPage()
-
-  await page.goto(dataUrl, { timeout: 90000 })
-
   const parentSelector = 'div.tile.is-parent.is-7.is-vertical'
   const childSelector = 'div.tile.is-child'
 
-  await page.waitForSelector(parentSelector)
+  const $ = await cheerio.fromURL(dataUrl)
 
-  const childElements = await page.$$(parentSelector + ' ' + childSelector)
+  const $childElements = $(parentSelector + ' ' + childSelector)
 
   const data: Dolarg[] = []
-  if (childElements.length) {
-    for (const el of childElements) {
-      const name = await el.evaluate(node => node.getElementsByClassName('title')[0].getElementsByClassName('titleText')[0].textContent?.trim() || null)
-      const valuesElement = await el.$('.values')
+  if ($childElements.length) {
+    for (const el of $childElements.toArray()) {
+      const $el = $(el)
+      const name = $el.find('.title .titleText').text() || null
+      const $valuesElement = $el.find('.values')
+  
+      if ($valuesElement) {
+        const $buyElement = $valuesElement.find('.compra')
+        const $sellElement = $valuesElement.find('.venta')
 
-      if (valuesElement) {
-        const buyElement = await valuesElement.$('.compra')
-        const sellElement = await valuesElement.$('.venta')
-
-        const buyPrice = buyElement
-          ? await buyElement.evaluate(node => {
-            if (!node.getElementsByClassName('val').length) return null
-            return node.getElementsByClassName('val')[0].textContent?.trim() || null
-          })
-          : null
-        const sellPrice = sellElement
-          ? await sellElement.evaluate(node => {
-            if (
-              !node.getElementsByClassName('venta-wrapper').length || !node.getElementsByClassName('venta-wrapper')[0].getElementsByClassName('val').length
-            ) return null
-            return node.getElementsByClassName('venta-wrapper')[0].getElementsByClassName('val')[0].textContent?.trim() || null
-          })
-          : null
-        const sellPercentage = sellElement
-          ? await sellElement.evaluate(node => {
-            if (
-              !node.getElementsByClassName('var-porcentaje').length || !node.getElementsByClassName('var-porcentaje')[0].getElementsByTagName('div').length
-            ) return null
-            return node.getElementsByClassName('var-porcentaje')[0].getElementsByTagName('div')[0].textContent?.trim() || null
-          })
-          : null
+        const buyPrice = $buyElement.find('.val').text() || null
+        // const buyPercentage = $buyElement.find('.var-porcentaje div').text() || null
+        const sellPrice = $sellElement.find('.venta-wrapper .val').text() || null
+        const sellPercentage = $sellElement.find('.var-porcentaje div').text() || null
 
         data.push({
           name,
           buyPrice,
+          // buyPercentage,
           sellPrice,
           sellPercentage,
           buyPriceFormated: typeof buyPrice === 'string' && buyPrice.includes('$') ? (!isNaN(parseFloat(buyPrice.replace('$', ''))) ? parseFloat(buyPrice.replace('$', '').replace(/\./g, '').replace(',', '.')) : null) : null,
+          // buyPercentageFormated: typeof buyPercentage === 'string' && buyPercentage.includes('%') ? (!isNaN(parseFloat(buyPercentage.replace('%', ''))) ? parseFloat(buyPercentage.replace('%', '')) : null) : null,
           sellPriceFormated: typeof sellPrice === 'string' && sellPrice.includes('$') ? (!isNaN(parseFloat(sellPrice.replace('$', ''))) ? parseFloat(sellPrice.replace('$', '').replace(/\./g, '').replace(',', '.')) : null) : null,
           sellPercentageFormated: typeof sellPercentage === 'string' && sellPercentage.includes('%') ? (!isNaN(parseFloat(sellPercentage.replace('%', ''))) ? parseFloat(sellPercentage.replace('%', '')) : null) : null,
         })
@@ -84,6 +64,5 @@ export const getDolargData = async () => {
     }
   }
 
-  await browser.close()
   return { data }
 }

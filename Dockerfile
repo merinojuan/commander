@@ -1,43 +1,13 @@
-# FROM mcr.microsoft.com/playwright:v1.52.0-noble AS base
-FROM mcr.microsoft.com/playwright:v1.52.0-jammy
+FROM node:22.16.0-alpine
 
-# FROM base AS builder
-
-RUN apt-get update && apt-get install -y libc6
 WORKDIR /app
 
 COPY package*json tsconfig.json src ./
 
 RUN npm ci && \
-    # npx -y playwright@1.52.0 install --with-deps && \
     npm run build && \
     npm prune --production
 
-# FROM base AS runner
-# WORKDIR /app
-
-# RUN addgroup --system --gid 1001 nodejs
-# RUN adduser --system --uid 1001 hono
-
-# COPY --from=builder --chown=hono:nodejs /app/node_modules /app/node_modules
-# COPY --from=builder --chown=hono:nodejs /app/dist /app/dist
-# COPY --from=builder --chown=hono:nodejs /app/package.json /app/package.json
-
-# USER hono
 EXPOSE 3000
 
 CMD ["node", "/app/dist/index.js"]
-# FROM mcr.microsoft.com/playwright:v1.52.0-noble
-
-# WORKDIR /app
-
-# COPY package*.json tsconfig.json src ./
-# RUN npm install
-
-# COPY . .
-
-# RUN npm run build
-
-# EXPOSE 3000
-# ENV NODE_ENV=production
-# CMD ["node", "dist/index.js"]

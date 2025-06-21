@@ -1,4 +1,4 @@
-import { request, chromium } from 'playwright'
+// import { request, chromium } from 'playwright'
 import { type Timestamp } from 'firebase-admin/firestore'
 import { config } from 'dotenv'
 
@@ -28,56 +28,56 @@ export const isValidDate = (date: any) => {
 }
 
 export const getPdfOptions = async () => {
-  const dataOriginUrl = process.env.RFA_DATA_ORIGIN_URL
-  const dataUrl = process.env.RFA_DATA_URL
+  // const dataOriginUrl = process.env.RFA_DATA_ORIGIN_URL
+  // const dataUrl = process.env.RFA_DATA_URL
 
-  if (!dataOriginUrl || !dataUrl) throw new Error('No se encontraron las variables de entorno: RFA_DATA_ORIGIN_URL o RFA_DATA_URL')
+  // if (!dataOriginUrl || !dataUrl) throw new Error('No se encontraron las variables de entorno: RFA_DATA_ORIGIN_URL o RFA_DATA_URL')
 
-  const browser = await chromium.launch()
-  const page = await browser.newPage()
+  // const browser = await chromium.launch()
+  // const page = await browser.newPage()
 
-  await page.goto(dataUrl)
+  // await page.goto(dataUrl)
 
-  await page.waitForSelector('div.contenidoListado')
+  // await page.waitForSelector('div.contenidoListado')
 
-  const aTagHref = await page.$eval('div.contenidoListado a', (aTag) => aTag.getAttribute('href'))
-  const aTagDescription = await page.$eval('div.contenidoListado a div.descripcion', (divTag) => divTag.getHTML())
+  // const aTagHref = await page.$eval('div.contenidoListado a', (aTag) => aTag.getAttribute('href'))
+  // const aTagDescription = await page.$eval('div.contenidoListado a div.descripcion', (divTag) => divTag.getHTML())
 
-  let pdfDate = null
-  if (aTagDescription) {
-    const dateSplit = aTagDescription.split('.')
-    if (dateSplit && dateSplit[1] && dateSplit[1].includes('/')) {
-      let formatedDate = dateSplit[1].split('/')
-      pdfDate = new Date(`${formatedDate[1]}-${formatedDate[0]}-${formatedDate[2]}`)
-    }
-  }
+  // let pdfDate = null
+  // if (aTagDescription) {
+  //   const dateSplit = aTagDescription.split('.')
+  //   if (dateSplit && dateSplit[1] && dateSplit[1].includes('/')) {
+  //     let formatedDate = dateSplit[1].split('/')
+  //     pdfDate = new Date(`${formatedDate[1]}-${formatedDate[0]}-${formatedDate[2]}`)
+  //   }
+  // }
 
-  const pdfPageUrl = dataOriginUrl + aTagHref
+  // const pdfPageUrl = dataOriginUrl + aTagHref
 
-  await page.goto(pdfPageUrl)
+  // await page.goto(pdfPageUrl)
 
-  await page.waitForSelector('div.pdfVisualizador')
+  // await page.waitForSelector('div.pdfVisualizador')
 
-  const pdfUrl = await page.$eval('div.pdfVisualizador object', (objectTag) => objectTag.getAttribute('data'))
+  // const pdfUrl = await page.$eval('div.pdfVisualizador object', (objectTag) => objectTag.getAttribute('data'))
 
-  await browser.close()
-  return { pdfUrl, pdfDate }
+  // await browser.close()
+  // return { pdfUrl, pdfDate }
 }
 
 export const getPdfBuffer = async (pdfUrl: string) => {
-  const apiRequestContext = await request.newContext({
-    ignoreHTTPSErrors: true
-  })
+  // const apiRequestContext = await request.newContext({
+  //   ignoreHTTPSErrors: true
+  // })
 
-  const response = await apiRequestContext.get(pdfUrl)
+  // const response = await apiRequestContext.get(pdfUrl)
 
-  if (!response.ok()) throw new Error('Error al obtener el buffer del PDF.')
+  // if (!response.ok()) throw new Error('Error al obtener el buffer del PDF.')
 
-  const buffer = await response.body()
+  // const buffer = await response.body()
 
-  if (apiRequestContext) await apiRequestContext.dispose()
+  // if (apiRequestContext) await apiRequestContext.dispose()
 
-  return buffer
+  // return buffer
 }
 
 export const propmt = `
