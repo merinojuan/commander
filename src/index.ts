@@ -5,6 +5,7 @@ import { config } from 'dotenv'
 import { Timestamp } from 'firebase-admin/firestore'
 // import { GoogleGenAI } from '@google/genai'
 import { apiKeyAuth } from './middleware/auth.js'
+import { dolargCooldown } from './middleware/cooldown.js'
 import { updateFirestoreData } from './firebase/server.js' // getFirestoreData
 // import { getPdfOptions, getPdfBuffer, propmt, isValidDate, type RFAData, type RFABono } from './renta-fija-argentina.js'
 import { getDolargData, type DolargData } from './dolarg.js'
@@ -85,6 +86,7 @@ app.get('/error', (c) => {
 //   }
 // })
 
+app.use('/api/dolarg', dolargCooldown())
 app.post('/api/dolarg', async (c) => {
   const { DOLARG_DOC_REF } = env<{ DOLARG_DOC_REF: string }>(c)
   try {
