@@ -1,5 +1,6 @@
 import { serve } from '@hono/node-server'
 import { Hono } from 'hono'
+import { cors } from 'hono/cors'
 import { env } from 'hono/adapter'
 import { config } from 'dotenv'
 import { Timestamp } from 'firebase-admin/firestore'
@@ -14,6 +15,7 @@ config()
 
 const app = new Hono()
 
+app.use('*', cors())
 app.use('/api/*', apiKeyAuth())
 
 app.get('/', (c) => {
