@@ -4,13 +4,21 @@ import { config } from 'dotenv'
 
 config()
 
+const formatPrivateKey = (key: string | undefined) => {
+  if (!key) return undefined;
+
+  let formattedKey = key.replace(/^['"]|['"]$/g, '');
+
+  formattedKey = formattedKey.replace(/\\n/g, '\n');
+
+  return formattedKey.trim();
+};
+
 const serviceAccount = {
   type: 'service_account',
   project_id: process.env.FIREBASE_PROJECT_ID,
   private_key_id: process.env.FIREBASE_PRIVATE_KEY_ID,
-  private_key: process.env.FIREBASE_PRIVATE_KEY
-    ? process.env.FIREBASE_PRIVATE_KEY.replace(/\\n/gm, "\n")
-    : undefined,
+  private_key: formatPrivateKey(process.env.FIREBASE_PRIVATE_KEY),
   client_email: process.env.FIREBASE_CLIENT_EMAIL,
   client_id: process.env.FIREBASE_CLIENT_ID,
   auth_uri: process.env.FIREBASE_AUTH_URI,
