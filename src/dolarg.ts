@@ -1,6 +1,7 @@
 import * as cheerio from 'cheerio'
 import { type Timestamp } from 'firebase-admin/firestore'
 import { config } from 'dotenv'
+import { GoogleGenAI } from '@google/genai'
 
 config()
 
@@ -19,6 +20,20 @@ export interface Dolarg {
   buyPriceFormated: number | null,
   sellPriceFormated: number | null,
   sellPercentageFormated: number | null
+}
+
+export interface DolargOthersData {
+  data: DolargOthers[] | null,
+  syncError: boolean | null,
+  syncErrorMsg: string | null,
+  syncDate: Timestamp | null
+}
+
+export interface DolargOthers {
+  name: string | null,
+  value: number | null,
+  variation: number | null,
+  emoji: string | null
 }
 
 export const getDolargData = async () => {
@@ -63,6 +78,68 @@ export const getDolargData = async () => {
       }
     }
   }
+
+  return { data }
+}
+
+export const getDolargOthersData = async (requestData: string) => {
+  const gmApiKey = process.env.GEMINI_API_KEY
+
+  if (!gmApiKey) throw new Error('No se encontraron las variables de entorno: GEMINI_API_KEY')
+
+  const ai = new GoogleGenAI({ apiKey: gmApiKey })
+  const contents = [
+    {
+      text: `
+        ${requestData}
+
+        Según el texto anterior que representa una tabla con diferentes indicadores del mercado mundial,
+        dame una lista de todos los indicadores que puedas identificar,
+        con su respectivo valor y variación de cambio (si está disponible),
+        además de un emoji que represente al indicador según su nombre,
+        usando la siguiente estructura JSON de ejemplo:​
+
+        [
+          {
+            "name": "Merval", (formato string, ejemplo: "Dólar MEP", "Merval", "Bitcoin", etc)
+            "value": 2839106, (formato numérico, ejemplo: 1409, 2839106, 66761, etc)
+            "variation": 4.26, (formato numérico respetando los valores negativos, ejemplo: 1.49, -0.28, 4.26, etc -si no hay variación disponible, dejar como null-)
+            "emoji": "" (emoji representativo del indicador, teniendo en cuenta "Lista de emojis + claves" que te proporcionaré en "Consideraciones por campo")
+          },
+          ...terminar de listar aquí los indicadores
+        ]
+
+        Consideraciones por campo:
+
+        -Si consideras que no hay información suficiente para completar un campo, debes ingresar null.
+        -Lista de emojis + claves:
+          1-riesgo: 🧨
+          2-dolar: 💵
+          3-merval: 🧉
+          4-sp500: 🏉
+          5-shanghai: ​🍙
+          6-bovespa: 🪇
+          7-euro: 💶
+          8-nikkei: 🎌
+          9-oro: ​🏅​
+          10-petroleo: 🛢️
+          11-soja: 🌿
+          12-tesoro: 🏦
+          13-bitcoin: 🪙
+      `
+    }
+  ]
+
+  const response = await ai.models.generateContent({
+    model: "gemini-2.5-flash",
+    contents: contents,
+  })
+
+  const jsonStr = response.text?.match(/```json(.*?)```/s)
+
+  if (!Array.isArray(jsonStr) || !jsonStr[1]) throw new Error('No se encontró el JSON en la respuesta.')
+
+  const data = JSON.parse(jsonStr[1]) as DolargOthers[]
 
   return { data }
 }

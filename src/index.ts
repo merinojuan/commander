@@ -6,10 +6,10 @@ import { config } from 'dotenv'
 import { Timestamp } from 'firebase-admin/firestore'
 // import { GoogleGenAI } from '@google/genai'
 import { apiKeyAuth } from './middleware/auth.js'
-import { dolargCooldown } from './middleware/cooldown.js'
+import { dolargCooldown, dolargOthersCooldown } from './middleware/cooldown.js'
 import { updateFirestoreData } from './firebase/server.js' // getFirestoreData
 // import { getPdfOptions, getPdfBuffer, propmt, isValidDate, type RFAData, type RFABono } from './renta-fija-argentina.js'
-import { getDolargData, type DolargData } from './dolarg.js'
+import { getDolargData, getDolargOthersData, type DolargData, type DolargOthersData } from './dolarg.js'
 
 config()
 
@@ -109,6 +109,32 @@ app.post('/api/dolarg', async (c) => {
       syncErrorMsg: e.message,
       syncDate: Timestamp.now()
     } as DolargData)
+    return c.text(`ERROR: ${e.message}`, 500)
+  }
+})
+
+app.use('/api/dolarg/others', dolargOthersCooldown())
+app.post('/api/dolarg/others', async (c) => {
+  const { DOLARG_OTHERS_DOC_REF } = env<{ DOLARG_OTHERS_DOC_REF: string }>(c)
+  try {
+    const { table_caja } = await c.req.json()
+    const { data } = await getDolargOthersData(table_caja)
+  
+    if (!data) throw new Error('No se encontraron los datos: data.')
+
+    await updateFirestoreData(DOLARG_OTHERS_DOC_REF, {
+      data,
+      syncError: false,
+      syncErrorMsg: null,
+      syncDate: Timestamp.now()
+    } as DolargOthersData)
+    return c.text('Proceso completado con éxito. Se actualizaron los datos de dolarg others.')
+  } catch (e: any) {
+    await updateFirestoreData(DOLARG_OTHERS_DOC_REF, {
+      syncError: true,
+      syncErrorMsg: e.message,
+      syncDate: Timestamp.now()
+    } as DolargOthersData)
     return c.text(`ERROR: ${e.message}`, 500)
   }
 })
