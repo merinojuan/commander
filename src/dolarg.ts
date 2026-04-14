@@ -27,7 +27,9 @@ export interface DolargOthersData {
   data: DolargOthers[] | null,
   syncError: boolean | null,
   syncErrorMsg: string | null,
-  syncDate: Timestamp | null
+  syncDate: Timestamp | null,
+  lastSuccessSyncDate: Timestamp | null,
+  model: string | null
 }
 
 export interface DolargOthers {
@@ -114,6 +116,7 @@ export const getDolargOthersData = async (requestData: string) => {
 
         Consideraciones por campo:
 
+        -Si o si el json de respuesta tiene que estar entre las etiquetas <comienzojson> y <finaljson> para que pueda ser identificado correctamente, ejemplo: <comienzojson>[{...}]<finaljson>
         -Si consideras que no hay información suficiente para completar un campo, debes ingresar null.
         -Lista de emojis + claves:
           1-riesgo: 🧨
@@ -148,11 +151,12 @@ export const getDolargOthersData = async (requestData: string) => {
     }
   })
 
-  const jsonStr = response.choices?.[0].message?.content?.match(/```json(.*?)```/s)
+  const jsonStr = response.choices?.[0].message?.content?.match(/<comienzojson>(.*?)<finaljson>/s)
 
-  if (!Array.isArray(jsonStr) || !jsonStr[1]) throw new Error('No se encontró el JSON en la respuesta.')
+  const finalData: { data: DolargOthers[] | null, model: string | null } = { data: null, model: response.model }
+  if (!Array.isArray(jsonStr) || !jsonStr[1]) return finalData
 
-  const data = JSON.parse(jsonStr[1]) as DolargOthers[]
+  finalData.data = JSON.parse(jsonStr[1]) as DolargOthers[]
 
-  return { data }
+  return finalData
 }

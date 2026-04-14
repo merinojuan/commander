@@ -118,16 +118,25 @@ app.post('/api/dolarg/others', async (c) => {
   const { DOLARG_OTHERS_DOC_REF } = env<{ DOLARG_OTHERS_DOC_REF: string }>(c)
   try {
     const { table_caja } = await c.req.json()
-    const { data } = await getDolargOthersData(table_caja)
+    const { data, model } = await getDolargOthersData(table_caja)
   
-    if (!data) throw new Error('No se encontraron los datos: data.')
+    if (!data) {
+      await updateFirestoreData(DOLARG_OTHERS_DOC_REF, {
+        syncError: true,
+        syncErrorMsg: 'No se encontraron los datos: data.',
+        syncDate: Timestamp.now(),
+        model
+      } as DolargOthersData)
+      return c.text(`ERROR: No se encontraron los datos: data.`, 500)
+    }
 
     await updateFirestoreData(DOLARG_OTHERS_DOC_REF, {
       data,
       syncError: false,
       syncErrorMsg: null,
       syncDate: Timestamp.now(),
-      lastSuccessSyncDate: Timestamp.now()
+      lastSuccessSyncDate: Timestamp.now(),
+      model
     } as DolargOthersData)
     return c.text('Proceso completado con éxito. Se actualizaron los datos de dolarg others.')
   } catch (e: any) {
