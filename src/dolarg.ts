@@ -29,7 +29,8 @@ export interface DolargOthersData {
   syncErrorMsg: string | null,
   syncDate: Timestamp | null,
   lastSuccessSyncDate: Timestamp | null,
-  model: string | null
+  llmModel: string | null,
+  llmResponse: string | null
 }
 
 export interface DolargOthers {
@@ -153,7 +154,16 @@ export const getDolargOthersData = async (requestData: string) => {
 
   const jsonStr = response.choices?.[0].message?.content?.match(/<comienzojson>(.*?)<finaljson>/s)
 
-  const finalData: { data: DolargOthers[] | null, model: string | null } = { data: null, model: response.model }
+  const finalData: {
+    data: DolargOthers[] | null,
+    llmModel: string | null,
+    llmResponse: string | null
+  } = {
+    data: null,
+    llmModel: response.model,
+    llmResponse: response.choices?.[0].message?.content
+  }
+
   if (!Array.isArray(jsonStr) || !jsonStr[1]) return finalData
 
   finalData.data = JSON.parse(jsonStr[1]) as DolargOthers[]
