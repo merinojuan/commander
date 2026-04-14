@@ -1,7 +1,8 @@
 import * as cheerio from 'cheerio'
 import { type Timestamp } from 'firebase-admin/firestore'
 import { config } from 'dotenv'
-import { GoogleGenAI } from '@google/genai'
+// import { GoogleGenAI } from '@google/genai'
+import { OpenRouter } from '@openrouter/sdk'
 
 config()
 
@@ -83,11 +84,12 @@ export const getDolargData = async () => {
 }
 
 export const getDolargOthersData = async (requestData: string) => {
-  const gmApiKey = process.env.GEMINI_API_KEY
+  // const gmApiKey = process.env.GEMINI_API_KEY
+  const openrouterApiKey = process.env.OPENROUTER_API_KEY
 
-  if (!gmApiKey) throw new Error('No se encontraron las variables de entorno: GEMINI_API_KEY')
+  // if (!gmApiKey) throw new Error('No se encontraron las variables de entorno: GEMINI_API_KEY')
+  if (!openrouterApiKey) throw new Error('No se encontraron las variables de entorno: OPENROUTER_API_KEY')
 
-  const ai = new GoogleGenAI({ apiKey: gmApiKey })
   const contents = [
     {
       text: `
@@ -130,12 +132,22 @@ export const getDolargOthersData = async (requestData: string) => {
     }
   ]
 
-  const response = await ai.models.generateContent({
-    model: "gemini-3.1-flash-lite-preview",
-    contents: contents,
+  // const ai = new GoogleGenAI({ apiKey: gmApiKey })
+  // const response = await ai.models.generateContent({
+  //   model: "gemini-3.1-flash-lite-preview",
+  //   contents: contents,
+  // })
+  const openrouter = new OpenRouter({ apiKey: openrouterApiKey })
+  const response = await openrouter.chat.send({
+    chatRequest: {
+      model: "openrouter/free",
+      messages: [
+        { role: "user", content: contents[0].text }
+      ]
+    }
   })
 
-  const jsonStr = response.text?.match(/```json(.*?)```/s)
+  const jsonStr = response.choices?.[0].message?.content?.match(/```json(.*?)```/s)
 
   if (!Array.isArray(jsonStr) || !jsonStr[1]) throw new Error('No se encontró el JSON en la respuesta.')
 
