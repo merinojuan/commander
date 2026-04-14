@@ -105,6 +105,7 @@ export const getDolargOthersData = async (requestData: string) => {
           {
             "name": "Merval", (formato string, ejemplo: "Dólar MEP", "Merval", "Bitcoin", etc)
             "value": 2839106, (formato numérico, ejemplo: 1409, 2839106, 66761, etc)
+            "valueSymbol": "$", (formato string, ejemplo: "$" o "%" dependiendo del tipo de valor)
             "variation": 4.26, (formato numérico respetando los valores negativos, ejemplo: 1.49, -0.28, 4.26, etc -si no hay variación disponible, dejar como null-)
             "emoji": "" (emoji representativo del indicador, teniendo en cuenta "Lista de emojis + claves" que te proporcionaré en "Consideraciones por campo")
           },

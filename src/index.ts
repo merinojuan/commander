@@ -126,7 +126,8 @@ app.post('/api/dolarg/others', async (c) => {
       data,
       syncError: false,
       syncErrorMsg: null,
-      syncDate: Timestamp.now()
+      syncDate: Timestamp.now(),
+      lastSuccessSyncDate: Timestamp.now()
     } as DolargOthersData)
     return c.text('Proceso completado con éxito. Se actualizaron los datos de dolarg others.')
   } catch (e: any) {
