@@ -117,7 +117,6 @@ export const getDolargOthersData = async (requestData: string) => {
 
         Consideraciones por campo:
 
-        -Si o si el json de respuesta tiene que estar entre las etiquetas <comienzojson> y <finaljson> para que pueda ser identificado correctamente, ejemplo: <comienzojson>[{...}]<finaljson>
         -Si consideras que no hay información suficiente para completar un campo, debes ingresar null.
         -Lista de emojis + claves:
           1-riesgo: 🧨
@@ -145,14 +144,14 @@ export const getDolargOthersData = async (requestData: string) => {
   const openrouter = new OpenRouter({ apiKey: openrouterApiKey })
   const response = await openrouter.chat.send({
     chatRequest: {
-      model: "openrouter/free",
+      model: "google/gemma-3n-e4b-it:free",
       messages: [
         { role: "user", content: contents[0].text }
       ]
     }
   })
 
-  const jsonStr = response.choices?.[0].message?.content?.match(/<comienzojson>(.*?)<finaljson>/s)
+  const jsonStr = response.choices?.[0].message?.content?.match(/\[.*?\]/s)
 
   const finalData: {
     data: DolargOthers[] | null,
@@ -164,9 +163,9 @@ export const getDolargOthersData = async (requestData: string) => {
     llmResponse: response.choices?.[0].message?.content
   }
 
-  if (!Array.isArray(jsonStr) || !jsonStr[1]) return finalData
+  if (!Array.isArray(jsonStr) || !jsonStr[0]) return finalData
 
-  finalData.data = JSON.parse(jsonStr[1]) as DolargOthers[]
+  finalData.data = JSON.parse(jsonStr[0]) as DolargOthers[]
 
   return finalData
 }
