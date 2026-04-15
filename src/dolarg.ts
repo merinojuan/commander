@@ -144,7 +144,7 @@ export const getDolargOthersData = async (requestData: string) => {
   const openrouter = new OpenRouter({ apiKey: openrouterApiKey })
   const response = await openrouter.chat.send({
     chatRequest: {
-      model: "google/gemma-3n-e4b-it:free",
+      model: "nvidia/nemotron-3-nano-30b-a3b:free",
       messages: [
         { role: "user", content: contents[0].text }
       ]
