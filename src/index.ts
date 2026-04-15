@@ -113,7 +113,7 @@ app.post('/api/dolarg', async (c) => {
   }
 })
 
-app.use('/api/dolarg/others', dolargOthersCooldown())
+// app.use('/api/dolarg/others', dolargOthersCooldown())
 app.post('/api/dolarg/others', async (c) => {
   const { DOLARG_OTHERS_DOC_REF } = env<{ DOLARG_OTHERS_DOC_REF: string }>(c)
   try {
