@@ -89,9 +89,10 @@ export const getDolargData = async () => {
 export const getDolargOthersData = async (requestData: string) => {
   // const gmApiKey = process.env.GEMINI_API_KEY
   const openrouterApiKey = process.env.OPENROUTER_API_KEY
+  const openrouterModel = process.env.OPENROUTER_MODEL
 
   // if (!gmApiKey) throw new Error('No se encontraron las variables de entorno: GEMINI_API_KEY')
-  if (!openrouterApiKey) throw new Error('No se encontraron las variables de entorno: OPENROUTER_API_KEY')
+  if (!openrouterApiKey || !openrouterModel) throw new Error('No se encontraron las variables de entorno: OPENROUTER_API_KEY o OPENROUTER_MODEL')
 
   const contents = [
     {
@@ -144,7 +145,7 @@ export const getDolargOthersData = async (requestData: string) => {
   const openrouter = new OpenRouter({ apiKey: openrouterApiKey })
   const response = await openrouter.chat.send({
     chatRequest: {
-      model: "nvidia/nemotron-3-nano-30b-a3b:free",
+      model: openrouterModel,
       messages: [
         { role: "user", content: contents[0].text }
       ]
