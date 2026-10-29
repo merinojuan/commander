@@ -9,7 +9,7 @@ import { apiKeyAuth } from './middleware/auth.js'
 import { dolargCooldown, dolargOthersCooldown } from './middleware/cooldown.js'
 import { updateFirestoreData } from './firebase/server.js' // getFirestoreData
 // import { getPdfOptions, getPdfBuffer, propmt, isValidDate, type RFAData, type RFABono } from './renta-fija-argentina.js'
-import { getDolargData, getDolargOthersData, type DolargData, type DolargOthersData } from './dolarg.js'
+import { getDolargData, type DolargData, type DolargOthersData } from './dolarg.js'
 
 config()
 
@@ -117,28 +117,36 @@ app.use('/api/dolarg/others', dolargOthersCooldown())
 app.post('/api/dolarg/others', async (c) => {
   const { DOLARG_OTHERS_DOC_REF } = env<{ DOLARG_OTHERS_DOC_REF: string }>(c)
   try {
-    const { table_caja } = await c.req.json()
-    const { data, llmModel, llmResponse } = await getDolargOthersData(table_caja)
+    const { indicadores } = await c.req.json()
+    // const { data, llmModel, llmResponse } = await getDolargOthersData(indicadores)
   
-    if (!data) {
+    // if (!data) {
+    //   await updateFirestoreData(DOLARG_OTHERS_DOC_REF, {
+    //     syncError: true,
+    //     syncErrorMsg: 'No se encontraron los datos: data.',
+    //     syncDate: Timestamp.now(),
+    //     llmModel,
+    //     llmResponse
+    //   } as DolargOthersData)
+    //   return c.text(`ERROR: No se encontraron los datos: data.`, 500)
+    // }
+    if (!indicadores) {
       await updateFirestoreData(DOLARG_OTHERS_DOC_REF, {
         syncError: true,
-        syncErrorMsg: 'No se encontraron los datos: data.',
+        syncErrorMsg: 'No se encontraron los datos: indicadores.',
         syncDate: Timestamp.now(),
-        llmModel,
-        llmResponse
       } as DolargOthersData)
-      return c.text(`ERROR: No se encontraron los datos: data.`, 500)
+      return c.text(`ERROR: No se encontraron los datos: indicadores.`, 500)
     }
 
     await updateFirestoreData(DOLARG_OTHERS_DOC_REF, {
-      data,
+      data: indicadores,
       syncError: false,
       syncErrorMsg: null,
       syncDate: Timestamp.now(),
       lastSuccessSyncDate: Timestamp.now(),
-      llmModel,
-      llmResponse
+      // llmModel,
+      // llmResponse
     } as DolargOthersData)
     return c.text('Proceso completado con éxito. Se actualizaron los datos de dolarg others.')
   } catch (e: any) {
